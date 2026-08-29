@@ -1,0 +1,63 @@
+// Схема данных цифровой визитки.
+// PostgreSQL поднимается вместе с приложением через docker-compose.
+// Для быстрого локального запуска без Docker можно поменять provider на
+// "sqlite" и указать file-based DATABASE_URL в .env — остальной код
+// менять не придётся.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Specialist {
+  id          String   @id @default(cuid())
+  fullName    String
+  role        String
+  tagline     String
+  location    String
+  avatarUrl   String?
+  email       String
+  telegram    String?
+  github      String?
+  website     String?
+  bio         String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  skills      Skill[]
+  projects    Project[]
+  experience  ExperienceItem[]
+}
+
+model Skill {
+  id           String     @id @default(cuid())
+  name         String
+  category     String     // "language" | "framework" | "database" | "devops" | "tooling"
+  level        Int        // 1..5
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  specialistId String
+}
+
+model Project {
+  id           String     @id @default(cuid())
+  title        String
+  description  String
+  stack        String     // список технологий через запятую
+  repoUrl      String?
+  demoUrl      String?
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  specialistId String
+}
+
+model ExperienceItem {
+  id           String     @id @default(cuid())
+  period       String
+  title        String
+  description  String
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  specialistId String
+}

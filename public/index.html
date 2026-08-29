@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Цифровая визитка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0f14;
+    --surface:#151922;
+    --surface-2:#1b202b;
+    --line:#262c39;
+    --text:#e7eaf1;
+    --muted:#8b93a7;
+    --accent:#8fe3c7;    
+    --accent-2:#b6a2f2;
+    --amber:#f0b860;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+    --sans:'Inter', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(143,227,199,0.06), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(182,162,242,0.06), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:40px 16px 80px;
+  }
+  .wrap{max-width:880px;margin:0 auto;}
+
+  /* window chrome */
+  .window{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .titlebar{
+    display:flex;align-items:center;gap:8px;
+    padding:12px 16px;
+    background:var(--surface-2);
+    border-bottom:1px solid var(--line);
+  }
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.r{background:#ef6b5f;} .dot.y{background:#f2b84b;} .dot.g{background:#61c454;}
+  .titlebar .path{
+    margin-left:12px;font-family:var(--mono);font-size:12.5px;color:var(--muted);
+  }
+
+  /* tabs */
+  .tabs{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--surface);}
+  .tab{
+    font-family:var(--mono);font-size:12.5px;color:var(--muted);
+    padding:10px 16px;border-right:1px solid var(--line);cursor:pointer;
+    display:flex;align-items:center;gap:6px;user-select:none;
+  }
+  .tab.active{color:var(--text);background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--accent);}
+  .tab .ext{color:var(--accent-2);}
+
+  .panel{display:none;padding:28px 28px 32px;}
+  .panel.active{display:block;}
+
+  /* hero / README */
+  .hero{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;}
+  .avatar{
+    width:76px;height:76px;border-radius:12px;flex:none;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:700;font-size:26px;color:#0c0f14;
+  }
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:-0.01em;}
+  .role{font-family:var(--mono);color:var(--accent);font-size:13.5px;margin:0 0 10px;}
+  .tagline{color:var(--muted);margin:0 0 14px;line-height:1.55;max-width:56ch;}
+  .meta{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+  .meta a{color:var(--muted);text-decoration:none;border-bottom:1px dashed var(--line);}
+  .meta a:hover{color:var(--accent);border-color:var(--accent);}
+
+  .bio{
+    margin-top:22px;padding-top:20px;border-top:1px solid var(--line);
+    color:#c7cbd8;line-height:1.7;font-size:14.5px;
+  }
+  .prompt{font-family:var(--mono);color:var(--accent);font-size:12.5px;margin-bottom:6px;}
+
+  /* skills (package.json look) */
+  pre.code{
+    font-family:var(--mono);font-size:13px;line-height:1.8;color:#c7cbd8;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+    padding:18px 20px;overflow-x:auto;margin:0;
+  }
+  .key{color:var(--accent-2);} .str{color:var(--amber);} .punc{color:var(--muted);}
+  .bars{margin-top:18px;display:grid;gap:10px;}
+  .bar-row{display:grid;grid-template-columns:130px 1fr 30px;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;}
+  .bar-track{height:6px;background:var(--surface-2);border-radius:4px;overflow:hidden;border:1px solid var(--line);}
+  .bar-fill{height:100%;background:linear-gradient(90deg, var(--accent), var(--accent-2));}
+
+  /* git log */
+  .log{font-family:var(--mono);font-size:13px;}
+  .commit{display:grid;grid-template-columns:18px 1fr;gap:14px;position:relative;padding-bottom:26px;}
+  .commit:last-child{padding-bottom:0;}
+  .commit .rail{position:relative;}
+  .commit .node{width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:4px;box-shadow:0 0 0 3px rgba(143,227,199,0.15);}
+  .commit .stem{position:absolute;left:4px;top:14px;bottom:-26px;width:1px;background:var(--line);}
+  .commit:last-child .stem{display:none;}
+  .commit .hash{color:var(--accent-2);}
+  .commit .period{color:var(--muted);}
+  .commit .msg{color:var(--text);font-weight:600;margin:2px 0 4px;font-family:var(--sans);font-size:14.5px;}
+  .commit .desc{color:var(--muted);font-family:var(--sans);font-size:13.5px;line-height:1.55;}
+
+  /* projects */
+  .projects{display:grid;gap:14px;}
+  .project{
+    border:1px solid var(--line);border-radius:8px;padding:16px 18px;background:var(--surface-2);
+  }
+  .project h3{margin:0 0 6px;font-size:15.5px;}
+  .project p{margin:0 0 10px;color:var(--muted);font-size:13.5px;line-height:1.55;}
+  .stack{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-bottom:10px;}
+  .plinks{display:flex;gap:14px;font-family:var(--mono);font-size:12px;}
+  .plinks a{color:var(--accent-2);text-decoration:none;}
+  .plinks a:hover{text-decoration:underline;}
+
+  .footer{
+    max-width:880px;margin:22px auto 0;font-family:var(--mono);font-size:12px;color:var(--muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+  .footer span.ok{color:var(--accent);}
+
+  .state{font-family:var(--mono);font-size:13px;color:var(--muted);padding:40px 0;text-align:center;}
+
+  @media (prefers-reduced-motion:no-preference){
+    .window{animation:rise .5s ease both;}
+    @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  }
+  @media (max-width:560px){
+    .panel{padding:20px 16px 26px;}
+    .bar-row{grid-template-columns:96px 1fr 26px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="window" id="app">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path">~/visitka — via GraphQL</span>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div id="panels">
+      <div class="state">Загрузка визитки…</div>
+    </div>
+  </div>
+  <div class="footer">
+    <span><span class="ok">●</span> API: <code>/graphql</code></span>
+    <span>Собрано на NestJS · Prisma · GraphQL · Docker</span>
+  </div>
+</div>
+
+<script>
+const QUERY = `
+  query {
+    specialist {
+      fullName role tagline location email telegram github website bio
+      skills { name category level }
+      projects { title description stack repoUrl demoUrl }
+      experience { period title description }
+    }
+  }
+`;
+
+function initials(name){
+  return name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+function esc(s){
+  return (s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+
+function renderReadme(d){
+  const links = [
+    d.email ? `<a href="mailto:${esc(d.email)}">${esc(d.email)}</a>` : null,
+    d.telegram ? `<a href="https://t.me/${esc(d.telegram.replace('@',''))}" target="_blank" rel="noopener">${esc(d.telegram)}</a>` : null,
+    d.github ? `<a href="${esc(d.github)}" target="_blank" rel="noopener">GitHub</a>` : null,
+    d.website ? `<a href="${esc(d.website)}" target="_blank" rel="noopener">Website</a>` : null,
+    `<span>${esc(d.location)}</span>`,
+  ].filter(Boolean).join('');
+
+  return `
+    <div class="hero">
+      <div class="avatar">${esc(initials(d.fullName))}</div>
+      <div>
+        <h1>${esc(d.fullName)}</h1>
+        <p class="role">${esc(d.role)}</p>
+        <p class="tagline">${esc(d.tagline)}</p>
+        <div class="meta">${links}</div>
+      </div>
+    </div>
+    <div class="bio">
+      <div class="prompt">$ cat about.md</div>
+      ${esc(d.bio)}
+    </div>
+  `;
+}
+
+function renderSkills(skills){
+  const byCat = skills.reduce((acc,s)=>{(acc[s.category]=acc[s.category]||[]).push(s);return acc;},{});
+  const order = ['language','framework','database','devops','tooling'];
+  const jsonLines = order.filter(c=>byCat[c]).map(cat => {
+    const names = byCat[cat].map(s => `<span class="str">"${esc(s.name)}"</span>`).join(', ');
+    return `  <span class="key">"${cat}"</span><span class="punc">:</span> [${names}]<span class="punc">,</span>`;
+  }).join('\n');
+
+  const bars = skills.map(s => `
+    <div class="bar-row">
+      <span>${esc(s.name)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${s.level*20}%"></span></span>
+      <span>${s.level}/5</span>
+    </div>
+  `).join('');
+
+  return `
+    <div class="prompt">$ cat stack.json</div>
+    <pre class="code"><span class="punc">{</span>\n${jsonLines}\n<span class="punc">}</span></pre>
+    <div class="bars">${bars}</div>
+  `;
+}
+
+function renderLog(items){
+  const rows = items.map(e => `
+    <div class="commit">
+      <div class="rail"><div class="node"></div><div class="stem"></div></div>
+      <div>
+        <div><span class="hash">#${Math.random().toString(16).slice(2,9)}</span> <span class="period">${esc(e.period)}</span></div>
+        <div class="msg">${esc(e.title)}</div>
+        <div class="desc">${esc(e.description)}</div>
+      </div>
+    </div>
+  `).join('');
+  return `<div class="prompt">$ git log --graph --oneline experience</div><div class="log">${rows}</div>`;
+}
+
+function renderProjects(projects){
+  const cards = projects.map(p => `
+    <div class="project">
+      <h3>${esc(p.title)}</h3>
+      <p>${esc(p.description)}</p>
+      <div class="stack">${esc(p.stack)}</div>
+      <div class="plinks">
+        ${p.demoUrl ? `<a href="${esc(p.demoUrl)}" target="_blank" rel="noopener">→ Просмотр</a>` : ''}
+        ${p.repoUrl ? `<a href="${esc(p.repoUrl)}" target="_blank" rel="noopener">→ Исходный код</a>` : ''}
+      </div>
+    </div>
+  `).join('');
+  return `<div class="prompt">$ ls projects/</div><div class="projects">${cards}</div>`;
+}
+
+async function load(){
+  try{
+    const res = await fetch('/graphql', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query: QUERY })
+    });
+    const json = await res.json();
+    if(json.errors) throw new Error(json.errors[0].message);
+    const d = json.data.specialist;
+
+    const tabsEl = document.getElementById('tabs');
+    const panelsEl = document.getElementById('panels');
+
+    const tabs = [
+      { id:'readme', label:'README', ext:'.md', html: renderReadme(d) },
+      { id:'stack',  label:'stack', ext:'.json', html: renderSkills(d.skills) },
+      { id:'log',    label:'experience', ext:'.log', html: renderLog(d.experience) },
+      { id:'projects', label:'projects', ext:'/', html: renderProjects(d.projects) },
+    ];
+
+    tabsEl.innerHTML = tabs.map((t,i)=>
+      `<div class="tab ${i===0?'active':''}" data-id="${t.id}">${t.label}<span class="ext">${t.ext}</span></div>`
+    ).join('');
+
+    panelsEl.innerHTML = tabs.map((t,i)=>
+      `<div class="panel ${i===0?'active':''}" id="panel-${t.id}">${t.html}</div>`
+    ).join('');
+
+    tabsEl.querySelectorAll('.tab').forEach(tabEl=>{
+      tabEl.addEventListener('click', ()=>{
+        tabsEl.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+        panelsEl.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+        tabEl.classList.add('active');
+        document.getElementById('panel-'+tabEl.dataset.id).classList.add('active');
+      });
+    });
+  }catch(err){
+    document.getElementById('panels').innerHTML =
+      `<div class="state">Не удалось загрузить данные (${esc(err.message)}).<br/>Проверьте, что сервер запущен и выполнен <code>npm run prisma:seed</code>.</div>`;
+  }
+}
+
+load();
+</script>
+</body>
+</html>
