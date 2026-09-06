@@ -1,8 +1,6 @@
 require('dotenv/config');
 const { defineConfig } = require('@prisma/config');
 
-const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL || '';
-
 module.exports = defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
@@ -10,6 +8,6 @@ module.exports = defineConfig({
     seed: 'tsx prisma/seed.ts',
   },
   datasource: {
-    url: dbUrl,
+    url: process.env.DIRECT_URL || process.env.DATABASE_URL,
   },
 });
