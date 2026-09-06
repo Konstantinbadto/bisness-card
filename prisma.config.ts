@@ -1,5 +1,7 @@
 require('dotenv/config');
-const { defineConfig, env } = require('@prisma/config');
+const { defineConfig } = require('@prisma/config');
+
+const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL || '';
 
 module.exports = defineConfig({
   schema: 'prisma/schema.prisma',
@@ -8,7 +10,6 @@ module.exports = defineConfig({
     seed: 'tsx prisma/seed.ts',
   },
   datasource: {
-    // Используем DIRECT_URL, а если его нет — фоллбек на DATABASE_URL или пустую строку для сборки Docker
-    url: process.env.DIRECT_URL || process.env.DATABASE_URL || '',
+    url: dbUrl,
   },
 });
