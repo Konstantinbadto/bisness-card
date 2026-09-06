@@ -1,5 +1,4 @@
 import { join } from 'path';
-import { tmpdir } from 'os';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -10,16 +9,21 @@ import { ProfileModule } from './profile/profile.module';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      // На Vercel файловая система доступна на запись только в /tmp —
-      // поэтому генерируемую схему пишем туда, а не в исходники проекта.
-      autoSchemaFile: join(tmpdir(), 'schema.gql'),
+      // Генерируем схему прямо в память — без завязки на /tmp или файловую систему
+      autoSchemaFile: true,
       sortSchema: true,
+      // Явно разрешаем Playground и Интроспекцию для продакшена (Railway)
       playground: true,
+      introspection: true,
       path: '/graphql',
     }),
     ServeStaticModule.forRoot({
+      // Используем process.cwd() для корректной привязки к рабочей директории Docker (/app/public)
       rootPath: join(process.cwd(), 'public'),
-      exclude: ['/graphql', '/graphql/(.*)'],
+      exclude: ['/graphql/(.*)'],
+      serveStaticOptions: {
+        fallthrough: true, // Защищает от выпадания сервера, если какого-то статического файла нет
+      },
     }),
     ProfileModule,
   ],

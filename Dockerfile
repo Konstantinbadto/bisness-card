@@ -29,11 +29,10 @@ ENV DIRECT_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
 RUN npm install --omit=dev && npx prisma generate
 
-# Копируем результаты сборки
+# Копируем скомпилированное приложение и статические файлы
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-# Запуск с явным расширением .js
-# Если NestJS скомпилировал в subfolder src, замените dist/main.js на dist/src/main.js
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed && node dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/src/main.js"]
