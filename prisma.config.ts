@@ -1,7 +1,7 @@
-import 'dotenv/config';
-import { defineConfig, env } from 'prisma/config';
+require('dotenv/config');
+const { defineConfig, env } = require('prisma/config');
 
-export default defineConfig({
+module.exports = defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
@@ -19,12 +19,4 @@ export default defineConfig({
     // в .env одно и то же значение в обеих переменных.
     url: env('DIRECT_URL'),
   },
-  import { defineConfig } from '@prisma/config';
-
-export default defineConfig({
-  datasource: {
-    url: process.env.DATABASE_URL || '',
-    directUrl: process.env.DIRECT_URL || process.env.DATABASE_URL || '',
-  },
-});
 });
