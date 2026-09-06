@@ -9,7 +9,6 @@ RUN npm install
 
 COPY . .
 
-# Передаем заглушки для переменных, чтобы prisma generate прошел на этапе сборки
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 ENV DIRECT_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
@@ -25,17 +24,16 @@ COPY package*.json ./
 COPY prisma.config.ts ./
 COPY prisma ./prisma
 
-# Передаем заглушки для этапа установки зависимостей
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 ENV DIRECT_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
 RUN npm install --omit=dev && npx prisma generate
 
-# Копируем скомпилированное приложение
+# Копируем результаты сборки
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-# На старте контейнера переменные из Railway переопределят заглушки
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed && node dist/main"]
+# Запуск с явным расширением .js
+# Если NestJS скомпилировал в subfolder src, замените dist/main.js на dist/src/main.js
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed && node dist/main.js"]
