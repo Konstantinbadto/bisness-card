@@ -1,16 +1,19 @@
 // Схема данных цифровой визитки.
 // PostgreSQL поднимается вместе с приложением через docker-compose.
-// Для быстрого локального запуска без Docker можно поменять provider на
-// "sqlite" и указать file-based DATABASE_URL в .env — остальной код
-// менять не придётся.
+// Генератор "prisma-client" — новый Rust-free клиент (Prisma ORM 7+):
+// не требует скачивания бинарного query-engine, поэтому корректно
+// работает и в офлайн-окружениях, и в serverless (Vercel).
+// Подключение к БД в Prisma 7 задаётся ВНЕ схемы: для CLI — в prisma.config.ts,
+// для рантайма приложения — через Driver Adapter в PrismaService/seed.ts.
+// Поле datasource.url больше не поддерживается схемой (см. prisma.config.ts).
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Specialist {

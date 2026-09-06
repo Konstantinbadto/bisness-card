@@ -36,21 +36,28 @@ docker-compose up --build
 - Визитка: **http://localhost:3000**
 - GraphQL Playground: **http://localhost:3000/graphql**
 
-Контейнер `app` при запуске сам применяет схему (`prisma migrate deploy`) и
-загружает демо-данные (`prisma:seed`) в базу `db` (PostgreSQL).
+Контейнер `app` при запуске сам применяет схему (`prisma db push`) и
+загружает демо-данные (`prisma db seed`) в базу `db` (PostgreSQL).
 
 ## Локальный запуск без Docker
 
-Требуется установленный PostgreSQL (или переключите `provider` в
-`prisma/schema.prisma` на `sqlite` для запуска вообще без БД-сервера).
+Требуется установленный PostgreSQL (либо готовая база в Neon/Supabase).
 
 ```bash
 npm install
-cp .env.example .env        # укажите свою DATABASE_URL
-npx prisma migrate dev --name init
+cp .env.example .env        # укажите свою DATABASE_URL (и DIRECT_URL для Neon)
+npx prisma generate
+npx prisma db push
 npm run prisma:seed
 npm run start:dev
 ```
+
+**Стек ORM:** проект использует **Prisma ORM 7** — Rust-free клиент
+(генератор `prisma-client`, вывод в `generated/prisma`), подключение через
+Driver Adapter `@prisma/adapter-pg`, конфигурация — в `prisma.config.ts`
+(а не внутри `schema.prisma`, как было в более старых версиях Prisma).
+Версия зафиксирована в `package.json` (`7.10.0`), так что `npx prisma`
+всегда возьмёт именно её, даже если где-то на компьютере стоит другая.
 
 ## Как сделать визитку своей
 
@@ -88,7 +95,36 @@ git push -u origin main
    `https://digital-business-card-production.up.railway.app` — это и есть
    ссылка «для просмотра».
 
-## Использование Claude Code в проекте
+## Деплой на Vercel
+
+Проект адаптирован под serverless: NestJS обёрнут в функцию `api/index.ts`
+(через `serverless-http`), маршрутизация настроена в `vercel.json`.
+Vercel не поднимает базу данных сам — нужна внешняя serverless-Postgres,
+например **[Neon](https://neon.tech)** или **[Supabase](https://supabase.com)**
+(у обоих есть бесплатный план с pooling-соединением, что важно для функций).
+
+**Шаги:**
+
+1. Создайте проект в Neon/Supabase, скопируйте **pooled connection string**
+   (у Neon это строка с `-pooler` в хосте, у Supabase — порт `6543` вместо `5432`).
+2. Один раз примените схему и залейте данные визитки со своего компьютера:
+   ```bash
+   # в .env временно укажите полученную строку подключения
+   npx prisma db push
+   npm run prisma:seed
+   ```
+3. На [vercel.com](https://vercel.com) импортируйте репозиторий.
+4. В Project Settings → Environment Variables добавьте:
+   - `DATABASE_URL` — та же pooled-строка подключения.
+5. Deploy. Vercel сам подхватит `npm run vercel-build` (генерирует Prisma
+   Client перед сборкой) и `vercel.json`.
+
+**Важно:** после смены данных в `prisma/seed.ts` повторный сид нужно гонять
+вручную с той же `DATABASE_URL` (шаг 2) — автосидирования при деплое на
+Vercel нет (в отличие от Docker), это осознанное решение: build-окружение
+Vercel не должно каждый раз перезатирать вашу базу.
+
+
 
 `CLAUDE.md` содержит контекст проекта для Claude Code, а в
 `.claude/commands/` — готовые команды (`/review-pr`, `/add-skill`),

@@ -14,9 +14,9 @@
     --line:#262c39;
     --text:#e7eaf1;
     --muted:#8b93a7;
-    --accent:#8fe3c7;    
-    --accent-2:#b6a2f2;
-    --amber:#f0b860;
+    --accent:#8fe3c7;    /* branch / prompt accent */
+    --accent-2:#b6a2f2;  /* graphql / secondary accent */
+    --amber:#f0b860;     /* skill level */
     --mono:'JetBrains Mono', ui-monospace, monospace;
     --sans:'Inter', system-ui, sans-serif;
   }
@@ -74,6 +74,12 @@
     background:linear-gradient(135deg, var(--accent), var(--accent-2));
     display:flex;align-items:center;justify-content:center;
     font-family:var(--mono);font-weight:700;font-size:26px;color:#0c0f14;
+  }
+  .avatar.avatar-photo{
+    background-size:cover;
+    background-position:center;
+    color:transparent;
+    border:1px solid var(--line);
   }
   h1{font-size:26px;margin:0 0 4px;letter-spacing:-0.01em;}
   .role{font-family:var(--mono);color:var(--accent);font-size:13.5px;margin:0 0 10px;}
@@ -190,9 +196,13 @@ function renderReadme(d){
     `<span>${esc(d.location)}</span>`,
   ].filter(Boolean).join('');
 
+  const avatar = d.avatarUrl
+    ? `<div class="avatar avatar-photo" style="background-image:url('${esc(d.avatarUrl)}')"></div>`
+    : `<div class="avatar">${esc(initials(d.fullName))}</div>`;
+
   return `
     <div class="hero">
-      <div class="avatar">${esc(initials(d.fullName))}</div>
+      ${avatar}
       <div>
         <h1>${esc(d.fullName)}</h1>
         <p class="role">${esc(d.role)}</p>

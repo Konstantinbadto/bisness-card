@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { tmpdir } from 'os';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -9,7 +10,9 @@ import { ProfileModule } from './profile/profile.module';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      // На Vercel файловая система доступна на запись только в /tmp —
+      // поэтому генерируемую схему пишем туда, а не в исходники проекта.
+      autoSchemaFile: join(tmpdir(), 'schema.gql'),
       sortSchema: true,
       playground: true,
       path: '/graphql',
